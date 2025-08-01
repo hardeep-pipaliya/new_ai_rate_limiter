@@ -4,7 +4,7 @@ services:
   # PostgreSQL Database
   postgres:
     image: postgres:15
-    container_name: ai_rate_limiter_postgres_prod
+    container_name: ai_rate_limiter_postgres
     environment:
       POSTGRES_DB: ai_rate_limiter
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
@@ -20,7 +20,7 @@ services:
   # Redis
   redis:
     image: redis:7-alpine
-    container_name: ai_rate_limiter_redis_prod
+    container_name: ai_rate_limiter_redis
     ports:
       - "6379:6379"
     volumes:
@@ -32,7 +32,7 @@ services:
   # RabbitMQ
   rabbitmq:
     image: rabbitmq:3-management-alpine
-    container_name: ai_rate_limiter_rabbitmq_prod
+    container_name: ai_rate_limiter_rabbitmq
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-guest}
@@ -48,7 +48,7 @@ services:
   # APISIX Gateway (Standalone Mode)
   apisix:
     image: apache/apisix:3.7.0-debian
-    container_name: ai_rate_limiter_apisix_prod
+    container_name: ai_rate_limiter_apisix
     ports:
       - "9080:9080"
       - "9180:9180"
@@ -64,12 +64,12 @@ services:
   # Flask Application
   flask_app:
     build: .
-    container_name: ai_rate_limiter_app_prod
+    container_name: ai_rate_limiter_app
     ports:
       - "8501:8501"
     environment:
       - FLASK_APP=run.py
-      - FLASK_ENV=production
+      - FLASK_ENV=development
       - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=${REDIS_URL}
       - RABBITMQ_URL=${RABBITMQ_URL}
@@ -80,6 +80,7 @@ services:
       - SECRET_KEY=${SECRET_KEY}
     volumes:
       - ./logs:/app/logs
+      - .:/app
     depends_on:
       - postgres
       - redis
@@ -92,7 +93,7 @@ services:
   # Celery Worker
   celery_worker:
     build: .
-    container_name: ai_rate_limiter_worker_prod
+    container_name: ai_rate_limiter_worker
     command: celery -A app.celery worker --loglevel=info --concurrency=4
     environment:
       - DATABASE_URL=${DATABASE_URL}
@@ -104,10 +105,12 @@ services:
       - APISIX_ADMIN_URL=${APISIX_ADMIN_URL}
     volumes:
       - ./logs:/app/logs
+      - .:/app
     depends_on:
       - postgres
       - redis
       - rabbitmq
+      - apisix
     networks:
       - ai_rate_limiter_network
     restart: unless-stopped
@@ -115,7 +118,7 @@ services:
   # Celery Beat (Scheduler)
   celery_beat:
     build: .
-    container_name: ai_rate_limiter_beat_prod
+    container_name: ai_rate_limiter_beat
     command: celery -A app.celery beat --loglevel=info
     environment:
       - DATABASE_URL=${DATABASE_URL}
@@ -123,6 +126,9 @@ services:
       - RABBITMQ_URL=${RABBITMQ_URL}
       - CELERY_BROKER_URL=${CELERY_BROKER_URL}
       - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+    volumes:
+      - ./logs:/app/logs
+      - .:/app
     depends_on:
       - postgres
       - redis

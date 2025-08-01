@@ -233,8 +233,8 @@ The system uses APISIX for rate limiting with the following plugins:
 ### Production Deployment
 
 ```bash
-# Use production docker-compose
-docker-compose -f docker-compose.prod.yml up -d
+# Use the standard docker-compose
+docker-compose up -d
 ```
 
 ### Custom Deployment
@@ -248,6 +248,12 @@ docker-compose up --scale celery_worker=3
 
 # View logs
 docker-compose logs -f flask_app
+
+# Stop all services
+docker-compose down
+
+# Rebuild after code changes
+docker-compose up -d --build
 ```
 
 ## 📈 Monitoring
