@@ -1,0 +1,184 @@
+routes:
+  - uri: /v1/chat/completions
+    name: openai_chat_completions
+    desc: OpenAI Chat Completions API with rate limiting
+    methods:
+      - POST
+    plugins:
+      limit-req:
+        rate: 10
+        burst: 20
+        nodelay: false
+        rejected_code: 429
+        key_type: var
+        key: remote_addr
+      limit-conn:
+        conn: 10
+        burst: 20
+        default_conn_delay: 0.1
+        only_use_default_delay: false
+        rejected_code: 429
+        key_type: var
+        key: remote_addr
+      limit-count:
+        count: 100
+        time_window: 60
+        rejected_code: 429
+        key_type: var
+        key: remote_addr
+        policy: local
+      proxy-rewrite:
+        regex_uri: ["^/v1/chat/completions", "/v1/chat/completions"]
+      http_proxy:
+        host: api.openai.com
+        port: 443
+        scheme: https
+        timeout:
+          connect: 60
+          send: 60
+          read: 60
+      cors:
+        allow_origins: "*"
+        allow_methods: "GET,POST,PUT,DELETE,OPTIONS"
+        allow_headers: "*"
+        expose_headers: "*"
+        max_age: 3600
+        allow_credential: true
+
+  - uri: /v1/chat/completions/azure
+    name: azure_chat_completions
+    desc: Azure OpenAI Chat Completions API with rate limiting
+    methods:
+      - POST
+    plugins:
+      limit-req:
+        rate: 10
+        burst: 20
+        nodelay: false
+        rejected_code: 429
+        key_type: var
+        key: remote_addr
+      limit-conn:
+        conn: 10
+        burst: 20
+        default_conn_delay: 0.1
+        only_use_default_delay: false
+        rejected_code: 429
+        key_type: var
+        key: remote_addr
+      limit-count:
+        count: 100
+        time_window: 60
+        rejected_code: 429
+        key_type: var
+        key: remote_addr
+        policy: local
+      proxy-rewrite:
+        regex_uri: ["^/v1/chat/completions/azure", "/openai/deployments/*/chat/completions"]
+      http_proxy:
+        host: ${AZURE_OPENAI_ENDPOINT}
+        port: 443
+        scheme: https
+        timeout:
+          connect: 60
+          send: 60
+          read: 60
+      cors:
+        allow_origins: "*"
+        allow_methods: "GET,POST,PUT,DELETE,OPTIONS"
+        allow_headers: "*"
+        expose_headers: "*"
+        max_age: 3600
+        allow_credential: true
+
+  - uri: /v1/chat/completions/anthropic
+    name: anthropic_chat_completions
+    desc: Anthropic Claude Chat Completions API with rate limiting
+    methods:
+      - POST
+    plugins:
+      limit-req:
+        rate: 10
+        burst: 20
+        nodelay: false
+        rejected_code: 429
+        key_type: var
+        key: remote_addr
+      limit-conn:
+        conn: 10
+        burst: 20
+        default_conn_delay: 0.1
+        only_use_default_delay: false
+        rejected_code: 429
+        key_type: var
+        key: remote_addr
+      limit-count:
+        count: 100
+        time_window: 60
+        rejected_code: 429
+        key_type: var
+        key: remote_addr
+        policy: local
+      proxy-rewrite:
+        regex_uri: ["^/v1/chat/completions/anthropic", "/v1/messages"]
+      http_proxy:
+        host: api.anthropic.com
+        port: 443
+        scheme: https
+        timeout:
+          connect: 60
+          send: 60
+          read: 60
+      cors:
+        allow_origins: "*"
+        allow_methods: "GET,POST,PUT,DELETE,OPTIONS"
+        allow_headers: "*"
+        expose_headers: "*"
+        max_age: 3600
+        allow_credential: true
+
+  - uri: /v1/chat/completions/deepseek
+    name: deepseek_chat_completions
+    desc: DeepSeek Chat Completions API with rate limiting
+    methods:
+      - POST
+    plugins:
+      limit-req:
+        rate: 10
+        burst: 20
+        nodelay: false
+        rejected_code: 429
+        key_type: var
+        key: remote_addr
+      limit-conn:
+        conn: 10
+        burst: 20
+        default_conn_delay: 0.1
+        only_use_default_delay: false
+        rejected_code: 429
+        key_type: var
+        key: remote_addr
+      limit-count:
+        count: 100
+        time_window: 60
+        rejected_code: 429
+        key_type: var
+        key: remote_addr
+        policy: local
+      proxy-rewrite:
+        regex_uri: ["^/v1/chat/completions/deepseek", "/v1/chat/completions"]
+      http_proxy:
+        host: api.deepseek.com
+        port: 443
+        scheme: https
+        timeout:
+          connect: 60
+          send: 60
+          read: 60
+      cors:
+        allow_origins: "*"
+        allow_methods: "GET,POST,PUT,DELETE,OPTIONS"
+        allow_headers: "*"
+        expose_headers: "*"
+        max_age: 3600
+        allow_credential: true 

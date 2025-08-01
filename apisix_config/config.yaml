@@ -1,0 +1,72 @@
+apisix:
+  node_listen: 9080
+  enable_admin: true
+  admin_key:
+    - key: edd1c9f034335f136f87ad84b625c8f1
+      role: admin
+  allow_admin:
+    - 0.0.0.0/0
+  admin_listen:
+    port: 9180
+  enable_debug: true
+  enable_dev_mode: true
+  config_center: yaml
+
+nginx_config:
+  http:
+    custom_lua_shared_dicts:
+      rate_limit: 10m
+      ip_restriction: 10m
+    lua_shared_dicts:
+      lrucache: 50m
+      plugin-limit-req: 10m
+      plugin-limit-conn: 10m
+      plugin-limit-count: 10m
+      plugin-prometheus: 10m
+      plugin-limit-count-reset: 10m
+      plugin-limit-req-reset: 10m
+      plugin-limit-conn-reset: 10m
+
+plugin_attr:
+  limit-req:
+    rate: 10
+    burst: 20
+    nodelay: false
+    rejected_code: 429
+    key_type: var
+    key: remote_addr
+  limit-conn:
+    conn: 10
+    burst: 20
+    default_conn_delay: 0.1
+    only_use_default_delay: false
+    rejected_code: 429
+    key_type: var
+    key: remote_addr
+  limit-count:
+    count: 100
+    time_window: 60
+    rejected_code: 429
+    key_type: var
+    key: remote_addr
+    policy: local
+
+deployment:
+  admin:
+    allow_admin:
+      - 0.0.0.0/0
+    admin_key:
+      - key: edd1c9f034335f136f87ad84b625c8f1
+        role: admin
+    port: 9180
+  etcd:
+    host:
+      - "http://127.0.0.1:2379"
+    prefix: "/apisix"
+    timeout: 30
+  role: traditional
+  role_traditional:
+    config_provider: yaml
+  log_rotate:
+    interval: 1
+    max_kept: 168 

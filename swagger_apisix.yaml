@@ -1,0 +1,1076 @@
+openapi: 3.0.0
+info:
+  title: AI Rate Limiter API
+  version: 1.0.0
+  description: API documentation for AI Rate Limiter service
+servers:
+  - url: http://localhost:8501
+    description: Local development server
+
+paths:
+  /queues/:
+    get:
+      tags:
+        - Queue
+      summary: List all queues
+      responses:
+        '200':
+          description: List of queues
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: '#/components/schemas/Queue'
+                        - type: object
+                          properties:
+                            providers:
+                              type: array
+                              description: List of providers associated with this queue
+                              items:
+                                $ref: '#/components/schemas/Provider'
+
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /queue/{queue_id}:  
+    get:
+      tags:
+        - Queue
+      summary: Get a queue by ID with associated providers  
+      parameters:
+        - in: path
+          name: queue_id
+          required: true
+          schema:
+            type: string
+          description: filter by queue_id
+      responses:
+        '200':
+          description: Queue details with providers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    allOf:
+                      - $ref: '#/components/schemas/Queue'
+                      - type: object
+                        properties:
+                          providers:
+                            type: array
+                            description: List of providers associated with this queue
+                            items:
+                              $ref: '#/components/schemas/Provider'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Queue not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /queue/create:
+    post:
+      tags:
+        - Queue
+      summary: Create a new queue and associated provider(s)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - queue_id
+                - providers
+              properties:
+                queue_id:
+                  type: string
+                  example: "84cc-43ec-bc4f-0000-000000000009"
+                  format: uuid
+                  description: Unique identifier for the queue
+                providers:
+                  type: array
+                  description: List of providers to be created with the queue
+                  items:
+                    type: object
+                    properties:
+                      provider_name:
+                        type: string
+                      provider_type:
+                        type: string
+                        enum:
+                          - openai
+                          - azure
+                          - anthropic
+                          - deepseek
+                          - claude
+                      api_key:
+                        type: string
+                        example: "sk-proj-1234567890"
+                      limit:
+                        type: integer
+                        example: 1000
+                      time_window:
+                        type: integer
+                        example: 3600
+                      config:
+                        type: object
+                        properties:
+                          model:
+                            type: string
+                            example: "gpt-4o"
+                          azure_api_version:
+                            type: string
+                            example: "2024-05-01-preview"
+                          endpoint:
+                            type: string
+                            example: "https://api.openai.com"
+      responses:
+        '201':
+          description: Queue and provider(s) created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Queue and providers created successfully"
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /queue/delete/{queue_id}:
+    delete:
+      tags:
+        - Queue
+      summary: Delete an existing queue
+      parameters:
+        - in: path
+          name: queue_id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Queue deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                    example: "Queue -84cc-43ec-bc4f-000000000009 deleted successfully"
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /queue/clear/{queue_id}:
+    post:
+      tags:
+        - Queue
+      summary: Clear all messages and stop workers for a queue
+      parameters:
+        - in: path
+          name: queue_id
+          required: true
+          schema:
+            type: string
+          description: filter by queue_id
+      responses:
+        '200':
+          description: Queue cleared successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Queue 84cc-43ec-bc4f-0000-000000000009 cleared and all workers stopped and removed messages successfully"
+                  queue_stopped:
+                    type: integer
+                    example: 2
+        '404':
+          description: queue not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /providers:
+    get:
+      tags:
+        - Provider
+      summary: List all providers
+      description: List all AI providers. Optionally filter by queue id.
+      parameters:
+        - in: query
+          name: queue_id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of providers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:   
+                  success:        
+                    type: boolean
+                    example: true
+                  data:         
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Provider'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Provider not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /provider/create:
+    post:
+      tags:
+        - Provider
+      summary: Create an AI provider
+      description: Create a new AI provider.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                queue_id:
+                  type: string
+                  example: "84cc-43ec-bc4f-0000-000000000009"
+                provider_name:
+                  type: string
+                  example: "OpenAI"
+                api_key:
+                  type: string
+                  example: "sk-proj-1234567890"
+                limit:
+                  type: integer
+                  example: 1000
+                time_window:
+                  type: integer
+                  example: 3600
+                config:
+                  type: object
+                  properties:
+                    model:
+                      type: string
+                      example: "gpt-4o"
+                    azure_api_version:
+                      type: string
+                    endpoint:
+                      type: string
+              required:
+                - model
+                - api_key
+                - limit
+                - time_window
+      responses:
+        '201':
+          description: Provider added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Provider added successfully"
+                  success:
+                    type: boolean
+                    example: true
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Queue not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /provider/update/{provider_id}:
+    patch:
+      tags:
+        - Provider
+      summary: Update provider by id
+      description: Update an existing AI provider by its ID and store the changes in the database.
+      parameters:
+        - in: path
+          name: provider_id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                queue_id:
+                  type: string
+                  description: The queue to which this provider belongs
+                  example: "84cc-43ec-bc4f-0000-000000000009"
+                provider_name:
+                  type: string
+                  example: "OpenAI"
+                api_key:
+                  type: string
+                  example: "sk-proj-1234567890"
+                limit:
+                  type: integer
+                  example: 1000
+                time_window:
+                  type: integer
+                  example: 3600
+                config:
+                  type: object
+                  properties:
+                    model:
+                      type: string
+                      example: "gpt-4o"
+                    azure_api_version:
+                      type: string
+                      example: "2024-05-01-preview"
+                    endpoint:
+                      type: string
+                      example: "https://api.openai.com"
+              required:
+                - queue_id
+                - model
+                - api_key
+                - limit
+                - time_window
+      responses:
+        '200':
+          description: Provider updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Provider updated successfully"
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+  /provider/delete/{provider_id}:
+    delete:
+      tags:
+        - Provider
+      summary: Delete a provider
+      description: Delete an AI provider by its ID.
+      parameters:
+        - in: path
+          name: provider_id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Provider deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Provider key 24e583ef-eb8a-4c04-93df-06e606716d56 deleted successfully"
+                  success:
+                    type: boolean
+                    example: true
+        '404':
+          description: Provider not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /worker/create/{queue_id}:
+    post:
+      tags:
+        - Worker
+      summary: Start worker process
+      description: Create and start a new worker for a given queue.
+      parameters:
+        - in: path
+          name: queue_id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                count:
+                  type: integer
+                  example: 1
+      responses:
+        '200':
+          description: Worker process started successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  current_count:
+                    type: integer
+                    description: The current number of workers after the operation.
+                    example: 1
+                  previous_count:
+                    type: integer
+                    description: The number of workers before the operation.
+                    example: 0
+                  success:
+                    type: boolean
+                    description: Whether the operation was successful.
+                    example: true
+                  target_count:
+                    type: integer
+                    description: The target number of workers requested.
+                    example: 1
+                  workers:
+                    type: array
+                    description: List of worker objects that were started.
+                    items:
+                      $ref: '#/components/schemas/Worker'
+                  workers_added:
+                    type: integer
+                    description: The number of workers added.
+                    example: 1
+                  workers_removed:
+                    type: integer
+                    description: The number of workers removed.
+                    example: 0
+                  queue_id:
+                    type: string
+                    description: The queue ID associated with the operation.
+                    example: "4f79ba74-84cc-43ec-bc4f-000000000009"
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Queue not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /worker/logs/{worker_id}:
+    get:
+      tags:
+        - Worker
+      summary: Show logs for a worker
+      description: Retrieve the logs and details for a specific worker by worker ID. The logs are read from a separate log file associated with the worker and returned in the response.
+      parameters:
+        - in: path
+          name: worker_id
+          required: true
+          schema:
+            type: string
+          description: The ID of the worker whose logs you want to retrieve.
+      responses:
+        '200':
+          description: Worker logs and details retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    description: List of worker objects matching the worker_id.
+                    items:
+                      $ref: '#/components/schemas/Worker'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Worker not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'  
+
+  /worker/delete/{worker_id}:
+    delete:
+      tags:
+        - Worker
+      summary: Delete a worker
+      description: Delete a specific worker process identified by worker ID.
+      parameters:
+        - in: path
+          name: worker_id
+          required: true
+          schema:
+            type: string
+          description: The ID of the worker to delete.
+      responses:
+        '200':
+          description: Worker deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Worker 4f79ba74-deleted successfully"
+                  worker_id:
+                    type: string
+                    example: "4f79ba74-84cc-43ec-bc4f-000000000009"
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Worker not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /message/read/{message_id}:
+    get:
+      tags:
+        - Message
+      summary: Read a message by message_id
+      parameters:
+        - in: path
+          name: message_id  
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Message details retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/ResponseMessage'
+        '404':
+          description: Message not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Message 123e4567-e89b-12d3-a456-426614174000 not found"
+                  success:
+                    type: boolean
+                    example: false
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /message/create:
+    post:
+      tags:
+        - Message
+      summary: Create a new message
+      description: Create a new message and queue it for processing.
+      operationId: createMessage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                queue_id:
+                  type: string
+                provider:
+                  type: string
+                  description: "AI provider to use (e.g., openai, azure, anthropic)"
+                model:
+                  type: string
+                prompt:
+                  type: string
+                system_prompt:
+                  type: string
+                result:
+                  type: string
+                supportive_variable:
+                  type: object
+              required:
+                - queue_id
+                - model
+                - prompt
+      responses:
+        '201':
+          description: Message created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Message created successfully"
+        '400':
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Queue not registered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Queue 123e4567-e89b-12d3-a456-426614174000 not registered please register it first"
+                  registration_required:
+                    type: boolean
+                    example: true
+                  success:
+                    type: boolean
+                    example: false
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /message/delete/{message_id}:
+    delete:
+      tags:
+        - Message
+      summary: Delete a message by message_id
+      parameters:
+        - in: path
+          name: message_id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Message deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Message deleted successfully
+        '404':
+          description: Message not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Message .............. not found"
+                  success:
+                    type: boolean
+                    example: false
+
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+        success:
+          type: boolean
+      example:
+        message: "string"
+        success: false
+    
+    Queue:
+      type: object
+      properties:
+        queue_id:
+          type: string
+          example: "-84cc-43ec-bc4f-000000000009"
+        queue_name:
+          type: string
+          example: "Test Queue"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-06-01T12:34:56Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-06-01T12:34:56Z"
+
+    Provider:
+      type: object
+      properties:
+        provider_id:
+          type: string
+          example: "24e583ef-eb8a-4c04-93df-06e606716d56"
+        queue_id:
+          type: string
+          example: "-84cc-43ec-bc4f-000000000009"
+        provider_name:
+          type: string
+          example: "OpenAI"
+        provider_type:
+          type: string
+          enum:
+            - openai
+            - azure
+            - anthropic
+            - deepseek
+            - claude
+        api_key:
+          type: string
+          example: "sk-proj-1234567890"
+        limit:
+          type: integer
+          example: 1000
+        time_window:
+          type: integer
+          example: 3600
+        config:
+          type: object
+          properties:
+            model:
+              type: string
+              example: "gpt-4o"
+            azure_api_version:
+              type: string
+              example: "2024-05-01-preview"
+            endpoint:
+              type: string
+              example: "https://api.openai.com"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-06-01T12:34:56Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-06-01T12:34:56Z"
+      required:
+        - provider_name
+        - api_key
+        - limit
+        - time_window
+        - config
+    
+
+    RequestMessage:
+      type: object
+      properties:
+        queue_id:
+          type: string
+          format: uuid
+        batch_id:
+          type: string
+          format: uuid  
+        model:
+          type: string
+        prompt:
+          type: string
+        # system_prompt:
+        #   type: string
+        result:
+          type: string
+        supportive_variable:
+          type: object
+          additionalProperties: true
+          example: {}
+      required:
+        - queue_id
+        - model
+        - prompt
+
+    ResponseMessage:
+      type: object
+      properties:
+        message_id:
+          type: string
+          format: uuid
+        queue_id:
+          type: string
+          format: uuid
+        provider_id:
+          type: string
+          example: "24e583ef-eb8a-4c04-93df-06e606716d56"
+        status:
+          type: string
+          enum:
+            - pending
+            - processing
+            - completed
+            - failed
+        system_prompt:
+          type: string
+        result:
+          type: string
+        supportive_variable:
+          type: object
+          additionalProperties: true
+          example: {}
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        success:
+          type: boolean
+          example: true
+      required:
+        - queue_id
+    Worker:
+      type: object
+      properties:
+        worker_id:
+          type: string
+          description: The unique identifier of the worker.
+          example: "1bed0c6e-0ffe-4456-8f33-5443a48d94fc"
+        pid:
+          type: integer
+          description: The process ID of the worker.
+          example: 18140
+        started_at:
+          type: string
+          format: date-time
+          description: The time when the worker started.
+          example: "2025-05-06T12:46:37.794758"
+        status:
+          type: string
+          description: The status of the worker.
+          example: "running"
+        log_file:
+          type: string
+          description: The path or name of the log file containing the worker's logs.
+          example: "worker_18140.log"
+        last_heartbeat:
+          type: string
+          format: date-time
+          description: The last time the worker sent a heartbeat.
+          example: "2025-05-06T13:07:48.786497"
+        queue_id:
+          type: string
+          description: The queue ID associated with the worker.
+          example: "4f79ba74-84cc-43ec-bc4f-000000000009"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string        
+          format: date-time 
+      required:
+        - worker_id
+        - pid
+        - started_at
+        - status
+        - queue_id
+          
+    Batch:
+      type: object
+      properties:
+        batch_id:
+          type: string
+          format: uuid
+        created_at:     
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time   
+        request_count:
+          type: integer
+          example: 10
+        webhook_url:
+          type: string
+          format: uri
+          example: "https://example.com/batch-complete"
+        webhook_event:
+          type: string
+          enum: [on_complete, on_error, on_partial]
+          example: on_complete
+        webhook_status:
+          type: string
+          enum: [pending, success, failed]
+          example: pending
+        webhook_last_called_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+        - batch_id
+        - created_at
+        - updated_at
+         
+
+
