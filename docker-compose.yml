@@ -55,12 +55,13 @@ services:
     environment:
       APISIX_STAND_ALONE: "true"
     volumes:
-      - ./apisix_config:/usr/local/apisix/conf
+      - ./apisix_config:/usr/local/apisix/conf:ro
+    user: "root"
     networks:
       - ai_rate_limiter_network
     restart: unless-stopped
 
-  # APISIX Dashboard
+  # APISIX Dashboard (Standalone Mode)
   apisix-dashboard:
     image: apache/apisix-dashboard:3.0.1-alpine
     container_name: ai_rate_limiter_apisix_dashboard
@@ -69,8 +70,11 @@ services:
     environment:
       APISIX_API_VERSION: v3
       APISIX_DASHBOARD_ETCD_ENDPOINTS: http://apisix:9180/apisix/admin
+      APISIX_DASHBOARD_STAND_ALONE: "true"
     networks:
       - ai_rate_limiter_network
+    depends_on:
+      - apisix
     restart: unless-stopped
 
   # Flask Application
