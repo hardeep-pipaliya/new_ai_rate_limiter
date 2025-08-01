@@ -35,4 +35,7 @@ plugin_attr:
     time_window: 60
     rejected_code: 429
     key_type: "var"
-    key: "remote_addr" 
+    key: "remote_addr"
+
+# Standalone mode configuration
+standalone: true 

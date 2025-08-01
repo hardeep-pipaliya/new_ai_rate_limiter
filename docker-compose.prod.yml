@@ -45,7 +45,7 @@ services:
       - ai_rate_limiter_network
     restart: unless-stopped
 
-  # APISIX Gateway
+  # APISIX Gateway (Standalone Mode)
   apisix:
     image: apache/apisix:3.7.0-debian
     container_name: ai_rate_limiter_apisix_prod
@@ -55,20 +55,7 @@ services:
     environment:
       APISIX_STAND_ALONE: "true"
     volumes:
-      - ./apisix_config:/usr/local/apisix/conf
-    networks:
-      - ai_rate_limiter_network
-    restart: unless-stopped
-
-  # APISIX Dashboard
-  apisix-dashboard:
-    image: apache/apisix-dashboard:3.0.1-alpine
-    container_name: ai_rate_limiter_apisix_dashboard_prod
-    ports:
-      - "9000:9000"
-    environment:
-      APISIX_API_VERSION: v3
-      APISIX_DASHBOARD_ETCD_ENDPOINTS: http://apisix:9180/apisix/admin
+      - ./apisix_config/config.yaml:/usr/local/apisix/conf/config.yaml:ro
     networks:
       - ai_rate_limiter_network
     restart: unless-stopped
@@ -100,8 +87,6 @@ services:
     networks:
       - ai_rate_limiter_network
     restart: unless-stopped
-    deploy:
-      replicas: 2
 
   # Celery Worker
   celery_worker:
@@ -126,8 +111,6 @@ services:
     networks:
       - ai_rate_limiter_network
     restart: unless-stopped
-    deploy:
-      replicas: 4
 
   # Celery Beat (Scheduler)
   celery_beat:
@@ -147,8 +130,6 @@ services:
     networks:
       - ai_rate_limiter_network
     restart: unless-stopped
-
-
 
 volumes:
   postgres_data:
