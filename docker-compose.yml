@@ -1,0 +1,166 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15
+    container_name: ai_rate_limiter_postgres
+    environment:
+      POSTGRES_DB: ai_rate_limiter
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ai_rate_limiter_network
+    restart: unless-stopped
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: ai_rate_limiter_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - ai_rate_limiter_network
+    restart: unless-stopped
+
+  # RabbitMQ
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: ai_rate_limiter_rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - ai_rate_limiter_network
+    restart: unless-stopped
+
+  # APISIX Gateway
+  apisix:
+    image: apache/apisix:3.7.0-debian
+    container_name: ai_rate_limiter_apisix
+    ports:
+      - "9080:9080"
+      - "9180:9180"
+    environment:
+      APISIX_STAND_ALONE: "true"
+    volumes:
+      - ./apisix_config:/usr/local/apisix/conf
+    networks:
+      - ai_rate_limiter_network
+    restart: unless-stopped
+
+  # APISIX Dashboard
+  apisix-dashboard:
+    image: apache/apisix-dashboard:3.0.1-alpine
+    container_name: ai_rate_limiter_apisix_dashboard
+    ports:
+      - "9000:9000"
+    environment:
+      APISIX_API_VERSION: v3
+      APISIX_DASHBOARD_ETCD_ENDPOINTS: http://apisix:9180/apisix/admin
+    networks:
+      - ai_rate_limiter_network
+    restart: unless-stopped
+
+  # Flask Application
+  flask_app:
+    build: .
+    container_name: ai_rate_limiter_app
+    ports:
+      - "8501:8501"
+    environment:
+      - FLASK_APP=run.py
+      - FLASK_ENV=development
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/ai_rate_limiter
+      - REDIS_URL=redis://redis:6379/0
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - APISIX_GATEWAY_URL=http://apisix:9080
+      - APISIX_ADMIN_URL=http://apisix:9180
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=8501
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+      - apisix
+    networks:
+      - ai_rate_limiter_network
+    restart: unless-stopped
+
+  # Celery Worker
+  celery_worker:
+    build: .
+    container_name: ai_rate_limiter_worker
+    command: celery -A app.celery worker --loglevel=info
+    environment:
+      - FLASK_APP=run.py
+      - FLASK_ENV=development
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/ai_rate_limiter
+      - REDIS_URL=redis://redis:6379/0
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - APISIX_GATEWAY_URL=http://apisix:9080
+      - APISIX_ADMIN_URL=http://apisix:9180
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+      - apisix
+      - flask_app
+    networks:
+      - ai_rate_limiter_network
+    restart: unless-stopped
+
+  # Celery Beat (Scheduler)
+  celery_beat:
+    build: .
+    container_name: ai_rate_limiter_beat
+    command: celery -A app.celery beat --loglevel=info
+    environment:
+      - FLASK_APP=run.py
+      - FLASK_ENV=development
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/ai_rate_limiter
+      - REDIS_URL=redis://redis:6379/0
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - APISIX_GATEWAY_URL=http://apisix:9080
+      - APISIX_ADMIN_URL=http://apisix:9180
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+      - apisix
+      - flask_app
+    networks:
+      - ai_rate_limiter_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:
+
+networks:
+  ai_rate_limiter_network:
+    driver: bridge 
