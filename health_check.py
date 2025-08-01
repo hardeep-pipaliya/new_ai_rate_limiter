@@ -28,8 +28,8 @@ def main():
     
     services = [
         ("Flask App", "http://localhost:8501"),
-        ("APISIX Gateway", "http://localhost:9080"),
-        ("APISIX Admin", "http://localhost:9180"),
+            ("APISIX Gateway", "http://localhost:9080"),
+    ("APISIX Admin", "http://localhost:9180"),
         ("RabbitMQ Management", "http://localhost:15672"),
     ]
     

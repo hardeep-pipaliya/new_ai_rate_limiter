@@ -55,7 +55,8 @@ services:
     environment:
       APISIX_STAND_ALONE: "true"
     volumes:
-      - ./apisix_config/config-default.yaml:/usr/local/apisix/conf/config-default.yaml:ro
+      - ./apisix_config/config.yaml:/usr/local/apisix/conf/config.yaml:ro
+      - ./apisix_config/routes.yaml:/usr/local/apisix/conf/routes.yaml:ro
     networks:
       - ai_rate_limiter_network
     restart: unless-stopped
@@ -107,7 +108,6 @@ services:
       - postgres
       - redis
       - rabbitmq
-      - apisix
     networks:
       - ai_rate_limiter_network
     restart: unless-stopped
@@ -127,6 +127,7 @@ services:
       - postgres
       - redis
       - rabbitmq
+      - apisix
     networks:
       - ai_rate_limiter_network
     restart: unless-stopped

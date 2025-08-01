@@ -1,13 +1,13 @@
 # AI Rate Limiter
 
-A comprehensive Flask-based AI rate limiting and batch processing system with APISIX integration, Redis caching, RabbitMQ queuing, and PostgreSQL persistence.
+A comprehensive Flask-based AI rate limiting and batch processing system with Redis caching, RabbitMQ queuing, and PostgreSQL persistence.
 
 ## 🚀 Features
 
 - **Dynamic Queue Management**: Create and manage message queues with multiple AI providers
-- **Rate Limiting**: Configurable rate limits per provider with APISIX-based tracking
+- **Rate Limiting**: Configurable rate limits per provider with Redis-based tracking
 - **Batch Processing**: Process large batches of messages with progress tracking
-- **APISIX Integration**: API gateway for rate limiting and request routing
+- **Direct Provider Integration**: Direct integration with OpenAI, Anthropic, and DeepSeek APIs
 - **Webhook Support**: Real-time notifications for batch completion
 - **Multiple AI Providers**: Support for OpenAI, Azure, Anthropic, DeepSeek, and Claude
 - **Worker Management**: Dynamic Celery worker creation and monitoring

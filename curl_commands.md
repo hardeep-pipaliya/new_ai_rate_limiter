@@ -6,7 +6,7 @@ Base URL: `http://64.227.9.103:8501` (or `http://localhost:8501` for local testi
 
 ### Create Queue
 ```bash
-curl -X POST http://64.227.9.103:8501/api/v1/queue/create \
+curl -X POST http://64.227.9.103:8501/queue/create \
   -H 'Content-Type: application/json' \
   -d '{
     "queue_id": "test_queue_1",
@@ -110,7 +110,7 @@ curl -X DELETE http://64.227.9.103:8501/worker/delete/1
 
 ### Create Single Message
 ```bash
-curl -X POST http://64.227.9.103:8501/message/create \
+curl -X POST http://64.227.9.103:8501/api/v1/message/create \
   -H 'Content-Type: application/json' \
   -d '{
     "queue_id": "test_queue_1",
@@ -125,7 +125,7 @@ curl -X POST http://64.227.9.103:8501/message/create \
 
 ### Create Batch Messages
 ```bash
-curl -X POST http://64.227.9.103:8501/message/create \
+curl -X POST http://64.227.9.103:8501/api/v1/message/create \
   -H 'Content-Type: application/json' \
   -d '{
     "queue_id": "test_queue_1",
@@ -162,34 +162,34 @@ curl -X POST http://64.227.9.103:8501/message/create \
 
 ### Read Message
 ```bash
-curl -X GET http://64.227.9.103:8501/message/read/1
+curl -X GET http://64.227.9.103:8501/api/v1/message/read/1
 ```
 
 ### Delete Message
 ```bash
-curl -X DELETE http://64.227.9.103:8501/message/delete/1
+curl -X DELETE http://64.227.9.103:8501/api/v1/message/delete/1
 ```
 
 ### Get Batch Messages
 ```bash
-curl -X GET http://64.227.9.103:8501/batch/1/messages
+curl -X GET http://64.227.9.103:8501/api/v1/batch/1/messages
 ```
 
 ### Get Batch Results (JSON)
 ```bash
-curl -X GET 'http://64.227.9.103:8501/batch/1/results?format=json'
+curl -X GET 'http://64.227.9.103:8501/api/v1/batch/1/results?format=json'
 ```
 
 ### Get Batch Results (CSV)
 ```bash
-curl -X GET 'http://64.227.9.103:8501/batch/1/results?format=csv'
+curl -X GET 'http://64.227.9.103:8501/api/v1/batch/1/results?format=csv'
 ```
 
 ## 🔧 Error Testing
 
 ### Test Invalid Queue
 ```bash
-curl -X POST http://64.227.9.103:8501/message/create \
+curl -X POST http://64.227.9.103:8501/api/v1/message/create \
   -H 'Content-Type: application/json' \
   -d '{
     "queue_id": "non_existent_queue",
@@ -199,7 +199,7 @@ curl -X POST http://64.227.9.103:8501/message/create \
 
 ### Test Missing Fields
 ```bash
-curl -X POST http://64.227.9.103:8501/message/create \
+curl -X POST http://64.227.9.103:8501/api/v1/message/create \
   -H 'Content-Type: application/json' \
   -d '{
     "queue_id": "test_queue_1"
@@ -261,8 +261,9 @@ curl -X GET http://64.227.9.103:8501/providers
 ## 📊 Service URLs
 
 - **Flask API**: http://64.227.9.103:8501
+- **Flask App**: http://64.227.9.103:8501
 - **APISIX Gateway**: http://64.227.9.103:9080
-- **APISIX Dashboard**: http://64.227.9.103:9000
+- **APISIX Admin**: http://64.227.9.103:9180
 - **RabbitMQ Management**: http://64.227.9.103:15672
 - **PostgreSQL**: localhost:5432
 - **Redis**: localhost:6379
@@ -300,4 +301,4 @@ chmod +x test_all_endpoints.sh
    Replace the test API keys with real ones for actual AI provider testing.
 
 5. **Monitor APISIX**:
-   Check the APISIX dashboard at http://64.227.9.103:9000 for rate limiting configuration. 
+Check the APISIX dashboard at http://64.227.9.103:9180 for rate limiting configuration. 
