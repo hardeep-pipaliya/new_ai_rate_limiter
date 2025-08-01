@@ -29,15 +29,15 @@ def create_app():
     celery.conf.update(app.config)
     
     # Register blueprints
-            from app.routes.queue_routes import queue_bp
-            from app.routes.provider_routes import provider_bp
-            from app.routes.worker_routes import worker_bp
-            from app.routes.message_routes import message_bp
+    from app.routes.queue_routes import queue_bp
+    from app.routes.provider_routes import provider_bp
+    from app.routes.worker_routes import worker_bp
+    from app.routes.message_routes import message_bp
 
-            app.register_blueprint(queue_bp, url_prefix='/api/v1')
-            app.register_blueprint(provider_bp, url_prefix='/api/v1')
-            app.register_blueprint(worker_bp, url_prefix='/api/v1')
-            app.register_blueprint(message_bp, url_prefix='/api/v1')
+    app.register_blueprint(queue_bp, url_prefix='/api/v1')
+    app.register_blueprint(provider_bp, url_prefix='/api/v1')
+    app.register_blueprint(worker_bp, url_prefix='/api/v1')
+    app.register_blueprint(message_bp, url_prefix='/api/v1')
     
     # Health check endpoint
     @app.route('/health')
