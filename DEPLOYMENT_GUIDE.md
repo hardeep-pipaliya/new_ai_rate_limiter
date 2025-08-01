@@ -161,10 +161,12 @@ docker stats
 ## 📝 API Endpoints
 
 ### Flask App (Port 8501)
-- `GET /api/queues/` - List queues
-- `GET /api/providers/` - List providers
-- `POST /api/messages/` - Create message
-- `GET /api/workers/` - List workers
+- `GET /api/v1/queues/` - List queues
+- `GET /api/v1/providers/` - List providers
+- `POST /api/v1/messages/` - Create message
+- `GET /api/v1/workers/` - List workers
+- `POST /api/v1/queue/create` - Create queue
+- `GET /health` - Health check
 
 ### APISIX Gateway (Port 9080)
 - All Flask app endpoints proxied through APISIX

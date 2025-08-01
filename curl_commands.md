@@ -6,7 +6,7 @@ Base URL: `http://64.227.9.103:8501` (or `http://localhost:8501` for local testi
 
 ### Create Queue
 ```bash
-curl -X POST http://64.227.9.103:8501/queue/create \
+curl -X POST http://64.227.9.103:8501/api/v1/queue/create \
   -H 'Content-Type: application/json' \
   -d '{
     "queue_id": "test_queue_1",
