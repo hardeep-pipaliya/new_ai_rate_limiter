@@ -13,6 +13,7 @@ from app.utils.exceptions import QueueNotFoundError, MessageNotFoundError
 from app.services.redis_service import RedisService
 from app.services.rabbitmq_service import RabbitMQService
 from app.tasks.worker_tasks import process_message  # Add this import
+from celery_app import celery  # Change this import
 
 class MessageService:
     """Service for managing messages"""
