@@ -13,8 +13,10 @@ from app.services.redis_service import RedisService
 from app.services.rabbitmq_service import RabbitMQService
 from app.services.apisix_service import APISIXService
 from app.utils.exceptions import MessageNotFoundError, ProviderNotFoundError
+from app.utils.celery_context import with_app_context
 
 @celery.task(bind=True)
+@with_app_context
 def process_message(self, message_id: str) -> Dict[str, Any]:
     """Process a single message through APISIX"""
     try:
@@ -91,6 +93,7 @@ def process_message(self, message_id: str) -> Dict[str, Any]:
         raise e
 
 @celery.task(bind=True)
+@with_app_context
 def process_batch_aggregator(self, batch_id: str) -> Dict[str, Any]:
     """Process batch completion and aggregate results"""
     try:
@@ -168,6 +171,7 @@ def process_batch_aggregator(self, batch_id: str) -> Dict[str, Any]:
         raise e
 
 @celery.task(bind=True)
+@with_app_context
 def cleanup_expired_data(self) -> Dict[str, Any]:
     """Clean up expired data from Redis"""
     try:
