@@ -15,13 +15,19 @@ class QueueService:
     def create_queue(queue_id: str, providers: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Create a new queue with providers"""
         try:
+            # Convert string queue_id to UUID
+            try:
+                queue_uuid = uuid.UUID(queue_id)
+            except ValueError:
+                raise ValueError(f"Invalid UUID format: {queue_id}. Please provide a valid UUID.")
+            
             # Check if queue already exists
-            existing_queue = Queue.query.filter_by(queue_id=queue_id).first()
+            existing_queue = Queue.query.filter_by(queue_id=queue_uuid).first()
             if existing_queue:
                 raise QueueAlreadyExistsError(f"Queue {queue_id} already exists")
             
             # Create queue
-            queue = Queue(queue_id=queue_id)
+            queue = Queue(queue_id=queue_uuid)
             db.session.add(queue)
             db.session.flush()  # Get the queue ID
             
@@ -56,11 +62,16 @@ class QueueService:
     @staticmethod
     def get_queue(queue_id: str) -> Dict[str, Any]:
         """Get queue by ID with providers"""
-        queue = Queue.query.filter_by(queue_id=queue_id).first()
+        try:
+            queue_uuid = uuid.UUID(queue_id)
+        except ValueError:
+            raise ValueError(f"Invalid UUID format: {queue_id}. Please provide a valid UUID.")
+        
+        queue = Queue.query.filter_by(queue_id=queue_uuid).first()
         if not queue:
             raise QueueNotFoundError(f"Queue {queue_id} not found")
         
-        providers = Provider.query.filter_by(queue_id=queue_id).all()
+        providers = Provider.query.filter_by(queue_id=queue_uuid).all()
         
         return {
             'success': True,
@@ -89,7 +100,12 @@ class QueueService:
     @staticmethod
     def delete_queue(queue_id: str) -> Dict[str, Any]:
         """Delete a queue and all its associated data"""
-        queue = Queue.query.filter_by(queue_id=queue_id).first()
+        try:
+            queue_uuid = uuid.UUID(queue_id)
+        except ValueError:
+            raise ValueError(f"Invalid UUID format: {queue_id}. Please provide a valid UUID.")
+        
+        queue = Queue.query.filter_by(queue_id=queue_uuid).first()
         if not queue:
             raise QueueNotFoundError(f"Queue {queue_id} not found")
         
@@ -104,17 +120,22 @@ class QueueService:
     @staticmethod
     def clear_queue(queue_id: str) -> Dict[str, Any]:
         """Clear all messages and stop workers for a queue"""
-        queue = Queue.query.filter_by(queue_id=queue_id).first()
+        try:
+            queue_uuid = uuid.UUID(queue_id)
+        except ValueError:
+            raise ValueError(f"Invalid UUID format: {queue_id}. Please provide a valid UUID.")
+        
+        queue = Queue.query.filter_by(queue_id=queue_uuid).first()
         if not queue:
             raise QueueNotFoundError(f"Queue {queue_id} not found")
         
         # Delete all messages
         from app.models.message import Message
-        messages_deleted = Message.query.filter_by(queue_id=queue_id).delete()
+        messages_deleted = Message.query.filter_by(queue_id=queue_uuid).delete()
         
         # Stop all workers
         from app.models.worker import Worker
-        workers_stopped = Worker.query.filter_by(queue_id=queue_id).delete()
+        workers_stopped = Worker.query.filter_by(queue_id=queue_uuid).delete()
         
         db.session.commit()
         

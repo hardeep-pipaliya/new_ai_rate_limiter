@@ -9,7 +9,7 @@ Base URL: `http://64.227.9.103:8501` (or `http://localhost:8501` for local testi
 curl -X POST http://64.227.9.103:8501/api/v1/queue/create \
   -H 'Content-Type: application/json' \
   -d '{
-    "queue_id": "test_queue_1",
+    "queue_id": "550e8400-e29b-41d4-a716-446655440000",
     "providers": [
       {
         "provider_name": "openai_gpt4",
@@ -33,12 +33,12 @@ curl -X GET http://64.227.9.103:8501/api/v1/queues/
 
 ### Get Specific Queue
 ```bash
-curl -X GET http://64.227.9.103:8501/api/v1/queue/test_queue_1
+curl -X GET http://64.227.9.103:8501/api/v1/queue/550e8400-e29b-41d4-a716-446655440000
 ```
 
 ### Delete Queue
 ```bash
-curl -X DELETE http://64.227.9.103:8501/api/v1/queue/delete/test_queue_1
+curl -X DELETE http://64.227.9.103:8501/api/v1/queue/delete/550e8400-e29b-41d4-a716-446655440000
 ```
 
 ## 🔧 Provider Management
