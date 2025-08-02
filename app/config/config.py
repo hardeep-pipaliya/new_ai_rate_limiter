@@ -11,14 +11,14 @@ class Config:
     SECRET_KEY = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
     
     # Database Configuration
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'postgresql://postgres:postgres@localhost:5432/ai_rate_limiter')
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'postgresql://postgres:postgres@postgres:5432/ai_rate_limiter')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # Redis Configuration
-    REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+    REDIS_URL = os.getenv('REDIS_URL', 'redis://redis:6379/0')
     
     # RabbitMQ Configuration
-    RABBITMQ_URL = os.getenv('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672/')
+    RABBITMQ_URL = os.getenv('RABBITMQ_URL', 'amqp://guest:guest@rabbitmq:5672/')
     
     # Celery Configuration
     CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'amqp://guest:guest@rabbitmq:5672/')
@@ -32,8 +32,8 @@ class Config:
     CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes
     
     # APISIX Configuration
-    APISIX_GATEWAY_URL = os.getenv('APISIX_GATEWAY_URL', 'http://localhost:9080')
-    APISIX_ADMIN_URL = os.getenv('APISIX_ADMIN_URL', 'http://localhost:9180')
+    APISIX_GATEWAY_URL = os.getenv('APISIX_GATEWAY_URL', 'http://apisix:9080')
+    APISIX_ADMIN_URL = os.getenv('APISIX_ADMIN_URL', 'http://apisix:9180')
     
     # Logging Configuration
     LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')

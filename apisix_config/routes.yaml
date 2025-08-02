@@ -78,7 +78,7 @@ routes:
       proxy-rewrite:
         regex_uri: ["^/v1/chat/completions/azure", "/openai/deployments/*/chat/completions"]
       http_proxy:
-        host: ${AZURE_OPENAI_ENDPOINT}
+        host: api.openai.com
         port: 443
         scheme: https
         timeout:
@@ -219,7 +219,7 @@ routes:
       proxy-rewrite:
         regex_uri: ["^/v1/chat/completions/google", "/v1/models/*:generateContent"]
       http_proxy:
-        host: ${GOOGLE_CLOUD_ENDPOINT}
+        host: generativelanguage.googleapis.com
         port: 443
         scheme: https
         timeout:

@@ -119,7 +119,7 @@ services:
   celery_beat:
     build: .
     container_name: ai_rate_limiter_beat
-    command: celery -A app.celery beat --loglevel=info --scheduler celery.beat.PersistentScheduler
+    command: celery -A app.celery beat --loglevel=info --scheduler celery.beat.PersistentScheduler --schedule=/tmp/celerybeat-schedule
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=${REDIS_URL}
@@ -131,7 +131,7 @@ services:
     volumes:
       - ./logs:/app/logs
       - .:/app
-      - celery_beat_data:/app/celerybeat-schedule
+      - celery_beat_data:/tmp
     depends_on:
       - postgres
       - redis
