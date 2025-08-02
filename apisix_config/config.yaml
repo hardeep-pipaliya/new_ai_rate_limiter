@@ -8,6 +8,12 @@ apisix:
   admin_key:
     - key: edd1c9f034335f136f87ad84b625c8f1
       role: admin
+  healthcheck:
+    test: ["CMD", "curl", "-f", "http://localhost:9180/apisix/admin/plugins"]
+    interval: 60s
+    timeout: 30s
+    retries: 5
+    start_period: 120s
 
 # Standalone mode configuration
 standalone: true 
