@@ -1,10 +1,7 @@
 """
 Celery application configuration
 """
-from app import celery, create_app
-
-# Create Flask app context
-app = create_app()
+from app import celery
 
 # Import tasks to register them with Celery
 from app.tasks import worker_tasks
