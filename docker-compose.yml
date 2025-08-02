@@ -56,7 +56,6 @@ services:
       APISIX_STAND_ALONE: "true"
     volumes:
       - ./apisix_config/config.yaml:/usr/local/apisix/conf/config.yaml:ro
-      - ./apisix_config/routes.yaml:/usr/local/apisix/conf/routes.yaml:ro
     networks:
       - ai_rate_limiter_network
     restart: unless-stopped
