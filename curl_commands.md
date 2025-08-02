@@ -6,7 +6,7 @@ Base URL: `http://64.227.9.103:8501` (or `http://localhost:8501` for local testi
 
 ### Create Queue
 ```bash
-curl -X POST http://64.227.9.103:8501/queue/create \
+curl -X POST http://64.227.9.103:8501/api/v1/queue/create \
   -H 'Content-Type: application/json' \
   -d '{
     "queue_id": "test_queue_1",
@@ -28,34 +28,34 @@ curl -X POST http://64.227.9.103:8501/queue/create \
 
 ### Get All Queues
 ```bash
-curl -X GET http://64.227.9.103:8501/queues/
+curl -X GET http://64.227.9.103:8501/api/v1/queues/
 ```
 
 ### Get Specific Queue
 ```bash
-curl -X GET http://64.227.9.103:8501/queue/test_queue_1
+curl -X GET http://64.227.9.103:8501/api/v1/queue/test_queue_1
 ```
 
 ### Delete Queue
 ```bash
-curl -X DELETE http://64.227.9.103:8501/queue/delete/test_queue_1
+curl -X DELETE http://64.227.9.103:8501/api/v1/queue/delete/test_queue_1
 ```
 
 ## 🔧 Provider Management
 
 ### Get All Providers
 ```bash
-curl -X GET http://64.227.9.103:8501/providers
+curl -X GET http://64.227.9.103:8501/api/v1/providers
 ```
 
 ### Get Providers for Queue
 ```bash
-curl -X GET 'http://64.227.9.103:8501/providers?queue_id=test_queue_1'
+curl -X GET 'http://64.227.9.103:8501/api/v1/providers?queue_id=test_queue_1'
 ```
 
 ### Create Provider
 ```bash
-curl -X POST http://64.227.9.103:8501/provider/create \
+curl -X POST http://64.227.9.103:8501/api/v1/provider/create \
   -H 'Content-Type: application/json' \
   -d '{
     "queue_id": "test_queue_1",
@@ -72,7 +72,7 @@ curl -X POST http://64.227.9.103:8501/provider/create \
 
 ### Update Provider
 ```bash
-curl -X PATCH http://64.227.9.103:8501/provider/update/1 \
+curl -X PATCH http://64.227.9.103:8501/api/v1/provider/update/1 \
   -H 'Content-Type: application/json' \
   -d '{
     "limit": 150,
@@ -82,14 +82,14 @@ curl -X PATCH http://64.227.9.103:8501/provider/update/1 \
 
 ### Delete Provider
 ```bash
-curl -X DELETE http://64.227.9.103:8501/provider/delete/1
+curl -X DELETE http://64.227.9.103:8501/api/v1/provider/delete/1
 ```
 
 ## 🔧 Worker Management
 
 ### Create Workers
 ```bash
-curl -X POST http://64.227.9.103:8501/worker/create/test_queue_1 \
+curl -X POST http://64.227.9.103:8501/api/v1/worker/create/test_queue_1 \
   -H 'Content-Type: application/json' \
   -d '{
     "count": 2
@@ -98,12 +98,12 @@ curl -X POST http://64.227.9.103:8501/worker/create/test_queue_1 \
 
 ### Get Worker Logs
 ```bash
-curl -X GET http://64.227.9.103:8501/worker/logs/1
+curl -X GET http://64.227.9.103:8501/api/v1/worker/logs/1
 ```
 
 ### Delete Worker
 ```bash
-curl -X DELETE http://64.227.9.103:8501/worker/delete/1
+curl -X DELETE http://64.227.9.103:8501/api/v1/worker/delete/1
 ```
 
 ## 🔧 Message Management
@@ -208,7 +208,7 @@ curl -X POST http://64.227.9.103:8501/api/v1/message/create \
 
 ### Test Non-existent Message
 ```bash
-curl -X GET http://64.227.9.103:8501/message/read/999999
+curl -X GET http://64.227.9.103:8501/api/v1/message/read/999999
 ```
 
 ## 🔧 Quick Test Sequence
@@ -217,7 +217,7 @@ Here's a quick test sequence to verify everything works:
 
 ```bash
 # 1. Create a queue
-curl -X POST http://64.227.9.103:8501/queue/create \
+curl -X POST http://64.227.9.103:8501/api/v1/queue/create \
   -H 'Content-Type: application/json' \
   -d '{
     "queue_id": "quick_test",
@@ -233,7 +233,7 @@ curl -X POST http://64.227.9.103:8501/queue/create \
   }'
 
 # 2. Create a single message
-curl -X POST http://64.227.9.103:8501/message/create \
+curl -X POST http://64.227.9.103:8501/api/v1/message/create \
   -H 'Content-Type: application/json' \
   -d '{
     "queue_id": "quick_test",
@@ -241,7 +241,7 @@ curl -X POST http://64.227.9.103:8501/message/create \
   }'
 
 # 3. Create batch messages
-curl -X POST http://64.227.9.103:8501/message/create \
+curl -X POST http://64.227.9.103:8501/api/v1/message/create \
   -H 'Content-Type: application/json' \
   -d '{
     "queue_id": "quick_test",
@@ -252,10 +252,10 @@ curl -X POST http://64.227.9.103:8501/message/create \
   }'
 
 # 4. Check queues
-curl -X GET http://64.227.9.103:8501/queues/
+curl -X GET http://64.227.9.103:8501/api/v1/queues/
 
 # 5. Check providers
-curl -X GET http://64.227.9.103:8501/providers
+curl -X GET http://64.227.9.103:8501/api/v1/providers
 ```
 
 ## 📊 Service URLs
