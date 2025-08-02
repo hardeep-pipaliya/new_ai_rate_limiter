@@ -11,7 +11,7 @@ from celery import Celery
 # Initialize extensions
 db = SQLAlchemy()
 migrate = Migrate()
-celery = Celery()
+celery = Celery('ai_rate_limiter')
 
 def create_app():
     """Application factory pattern"""
@@ -26,7 +26,17 @@ def create_app():
     CORS(app)
     
     # Initialize Celery
-    celery.conf.update(app.config)
+    celery.conf.update(
+        broker_url=app.config.get('CELERY_BROKER_URL'),
+        result_backend=app.config.get('CELERY_RESULT_BACKEND'),
+        task_serializer='json',
+        accept_content=['json'],
+        result_serializer='json',
+        timezone='UTC',
+        enable_utc=True,
+        task_track_started=True,
+        task_time_limit=30 * 60,  # 30 minutes
+    )
     
     # Register blueprints
     from app.routes.queue_routes import queue_bp

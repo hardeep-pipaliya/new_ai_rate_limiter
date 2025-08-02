@@ -119,16 +119,19 @@ services:
   celery_beat:
     build: .
     container_name: ai_rate_limiter_beat
-    command: celery -A app.celery beat --loglevel=info
+    command: celery -A app.celery beat --loglevel=info --scheduler celery.beat.PersistentScheduler
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=${REDIS_URL}
       - RABBITMQ_URL=${RABBITMQ_URL}
       - CELERY_BROKER_URL=${CELERY_BROKER_URL}
       - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+      - APISIX_GATEWAY_URL=${APISIX_GATEWAY_URL}
+      - APISIX_ADMIN_URL=${APISIX_ADMIN_URL}
     volumes:
       - ./logs:/app/logs
       - .:/app
+      - celery_beat_data:/app/celerybeat-schedule
     depends_on:
       - postgres
       - redis
@@ -142,6 +145,7 @@ volumes:
   postgres_data:
   redis_data:
   rabbitmq_data:
+  celery_beat_data:
 
 networks:
   ai_rate_limiter_network:
