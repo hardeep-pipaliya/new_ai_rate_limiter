@@ -16,6 +16,11 @@ services:
     networks:
       - ai_rate_limiter_network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # Redis
   redis:
@@ -28,6 +33,11 @@ services:
     networks:
       - ai_rate_limiter_network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # RabbitMQ
   rabbitmq:
@@ -44,6 +54,11 @@ services:
     networks:
       - ai_rate_limiter_network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # APISIX Gateway (Standalone Mode)
   apisix:
@@ -56,9 +71,16 @@ services:
       APISIX_STAND_ALONE: "true"
     volumes:
       - ./apisix_config/config.yaml:/usr/local/apisix/conf/config.yaml:ro
+      - ./apisix_config/routes.yaml:/usr/local/apisix/conf/routes.yaml:ro
+    user: "1000:1000"
     networks:
       - ai_rate_limiter_network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9180/apisix/admin/plugins"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # Flask Application
   flask_app:
@@ -66,25 +88,21 @@ services:
     container_name: ai_rate_limiter_app
     ports:
       - "8501:8501"
+    env_file:
+      - .env
     environment:
       - FLASK_APP=run.py
       - FLASK_ENV=development
-      - DATABASE_URL=${DATABASE_URL}
-      - REDIS_URL=${REDIS_URL}
-      - RABBITMQ_URL=${RABBITMQ_URL}
-      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
-      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
-      - APISIX_GATEWAY_URL=${APISIX_GATEWAY_URL}
-      - APISIX_ADMIN_URL=${APISIX_ADMIN_URL}
-      - SECRET_KEY=${SECRET_KEY}
     volumes:
       - ./logs:/app/logs
       - .:/app
     depends_on:
-      - postgres
-      - redis
-      - rabbitmq
-      - apisix
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
       - ai_rate_limiter_network
     restart: unless-stopped
@@ -94,22 +112,18 @@ services:
     build: .
     container_name: ai_rate_limiter_worker
     command: celery -A app.celery worker --loglevel=info --concurrency=4
-    environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - REDIS_URL=${REDIS_URL}
-      - RABBITMQ_URL=${RABBITMQ_URL}
-      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
-      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
-      - APISIX_GATEWAY_URL=${APISIX_GATEWAY_URL}
-      - APISIX_ADMIN_URL=${APISIX_ADMIN_URL}
+    env_file:
+      - .env
     volumes:
       - ./logs:/app/logs
       - .:/app
     depends_on:
-      - postgres
-      - redis
-      - rabbitmq
-      - apisix
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
       - ai_rate_limiter_network
     restart: unless-stopped
@@ -119,23 +133,19 @@ services:
     build: .
     container_name: ai_rate_limiter_beat
     command: celery -A app.celery beat --loglevel=info --scheduler celery.beat.PersistentScheduler --schedule=/tmp/celerybeat-schedule
-    environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - REDIS_URL=${REDIS_URL}
-      - RABBITMQ_URL=${RABBITMQ_URL}
-      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
-      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
-      - APISIX_GATEWAY_URL=${APISIX_GATEWAY_URL}
-      - APISIX_ADMIN_URL=${APISIX_ADMIN_URL}
+    env_file:
+      - .env
     volumes:
       - ./logs:/app/logs
       - .:/app
       - celery_beat_data:/tmp
     depends_on:
-      - postgres
-      - redis
-      - rabbitmq
-      - apisix
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
       - ai_rate_limiter_network
     restart: unless-stopped

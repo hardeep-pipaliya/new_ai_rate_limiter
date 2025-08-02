@@ -19,10 +19,6 @@ COPY . .
 # Create logs directory
 RUN mkdir -p logs
 
-# Copy startup script
-COPY start.sh /start.sh
-RUN chmod +x /start.sh
-
 # Create non-root user
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 USER appuser
