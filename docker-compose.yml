@@ -72,7 +72,6 @@ services:
     volumes:
       - ./apisix_config/config.yaml:/usr/local/apisix/conf/config.yaml:ro
       - ./apisix_config/routes.yaml:/usr/local/apisix/conf/routes.yaml:ro
-    # Remove the user specification to fix permission issues
     networks:
       - ai_rate_limiter_network
     restart: unless-stopped
@@ -81,6 +80,12 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
 
   # Flask Application
   flask_app:
@@ -88,11 +93,23 @@ services:
     container_name: ai_rate_limiter_app
     ports:
       - "8501:8501"
-    env_file:
-      - .env
     environment:
       - FLASK_APP=run.py
       - FLASK_ENV=development
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/ai_rate_limiter
+      - REDIS_URL=redis://redis:6379/0
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+      - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672/
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - APISIX_GATEWAY_URL=http://apisix:9080
+      - APISIX_ADMIN_URL=http://apisix:9180
+      - SECRET_KEY=your_secret_key_here_change_this_in_production
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=8501
+      - LOG_LEVEL=INFO
+      - LOG_FILE=logs/app.log
     volumes:
       - ./logs:/app/logs
       - .:/app
@@ -102,6 +119,8 @@ services:
       redis:
         condition: service_healthy
       rabbitmq:
+        condition: service_healthy
+      apisix:
         condition: service_healthy
     networks:
       - ai_rate_limiter_network
@@ -112,8 +131,21 @@ services:
     build: .
     container_name: ai_rate_limiter_worker
     command: celery -A app.celery worker --loglevel=info --concurrency=4 --include=app.tasks.worker_tasks
-    env_file:
-      - .env
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/ai_rate_limiter
+      - REDIS_URL=redis://redis:6379/0
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+      - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672/
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - APISIX_GATEWAY_URL=http://apisix:9080
+      - APISIX_ADMIN_URL=http://apisix:9180
+      - SECRET_KEY=your_secret_key_here_change_this_in_production
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=8501
+      - LOG_LEVEL=INFO
+      - LOG_FILE=logs/app.log
     volumes:
       - ./logs:/app/logs
       - .:/app
@@ -123,6 +155,8 @@ services:
       redis:
         condition: service_healthy
       rabbitmq:
+        condition: service_healthy
+      apisix:
         condition: service_healthy
     networks:
       - ai_rate_limiter_network
@@ -133,8 +167,21 @@ services:
     build: .
     container_name: ai_rate_limiter_beat
     command: celery -A app.celery beat --loglevel=info --scheduler celery.beat.PersistentScheduler --schedule=/tmp/celerybeat-schedule
-    env_file:
-      - .env
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/ai_rate_limiter
+      - REDIS_URL=redis://redis:6379/0
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+      - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672/
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - APISIX_GATEWAY_URL=http://apisix:9080
+      - APISIX_ADMIN_URL=http://apisix:9180
+      - SECRET_KEY=your_secret_key_here_change_this_in_production
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=8501
+      - LOG_LEVEL=INFO
+      - LOG_FILE=logs/app.log
     volumes:
       - ./logs:/app/logs
       - .:/app
@@ -145,6 +192,8 @@ services:
       redis:
         condition: service_healthy
       rabbitmq:
+        condition: service_healthy
+      apisix:
         condition: service_healthy
     networks:
       - ai_rate_limiter_network

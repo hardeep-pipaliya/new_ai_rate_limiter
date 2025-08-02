@@ -9,33 +9,5 @@ apisix:
     - key: edd1c9f034335f136f87ad84b625c8f1
       role: admin
 
-nginx_config:
-  http:
-    custom_lua_shared_dicts:
-      limit_req_store: 10m
-      limit_conn_store: 10m
-      limit_count_store: 10m
-
-plugin_attr:
-  limit-req:
-    rate: 10
-    burst: 20
-    rejected_code: 429
-    key_type: "var"
-    key: "remote_addr"
-  limit-conn:
-    conn: 10
-    burst: 20
-    default_conn_delay: 1
-    only_use_default_conn_delay: true
-    key_type: "var"
-    key: "remote_addr"
-  limit-count:
-    count: 100
-    time_window: 60
-    rejected_code: 429
-    key_type: "var"
-    key: "remote_addr"
-
 # Standalone mode configuration
 standalone: true 

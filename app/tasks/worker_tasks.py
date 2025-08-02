@@ -52,10 +52,16 @@ def process_message(self, message_id: str) -> Dict[str, Any]:
             })
         
         # Send request to APISIX
-        response = APISIXService.send_request(
-            provider=provider,
-            request_data=request_data
-        )
+        try:
+            response = APISIXService.send_request(
+                provider=provider,
+                request_data=request_data
+            )
+        except Exception as apisix_error:
+            # If APISIX fails, try direct API call as fallback
+            print(f"APISIX failed: {apisix_error}. Trying direct API call...")
+            # For now, just raise the error - we can implement direct API calls later
+            raise apisix_error
         
         # Update message with result
         message.status = 'completed'

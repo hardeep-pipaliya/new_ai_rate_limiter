@@ -1,4 +1,20 @@
 routes:
+  # Test route
+  - uri: /test
+    name: test_route
+    desc: Test route for APISIX
+    methods:
+      - GET
+    plugins:
+      http_proxy:
+        host: httpbin.org
+        port: 443
+        scheme: https
+        timeout:
+          connect: 60
+          send: 60
+          read: 60
+
   # OpenAI API Route
   - uri: /v1/chat/completions/openai
     name: openai_chat_completions
@@ -13,21 +29,6 @@ routes:
         rejected_code: 429
         key_type: var
         key: remote_addr
-      limit-conn:
-        conn: 10
-        burst: 20
-        default_conn_delay: 0.1
-        only_use_default_delay: false
-        rejected_code: 429
-        key_type: var
-        key: remote_addr
-      limit-count:
-        count: 100
-        time_window: 60
-        rejected_code: 429
-        key_type: var
-        key: remote_addr
-        policy: local
       proxy-rewrite:
         regex_uri: ["^/v1/chat/completions/openai", "/v1/chat/completions"]
       http_proxy:
@@ -38,242 +39,6 @@ routes:
           connect: 60
           send: 60
           read: 60
-      cors:
-        allow_origins: "*"
-        allow_methods: "GET,POST,PUT,DELETE,OPTIONS"
-        allow_headers: "*"
-        expose_headers: "*"
-        max_age: 3600
-        allow_credential: true
-
-  # Azure OpenAI API Route
-  - uri: /v1/chat/completions/azure
-    name: azure_chat_completions
-    desc: Azure OpenAI Chat Completions API with rate limiting
-    methods:
-      - POST
-    plugins:
-      limit-req:
-        rate: 10
-        burst: 20
-        nodelay: false
-        rejected_code: 429
-        key_type: var
-        key: remote_addr
-      limit-conn:
-        conn: 10
-        burst: 20
-        default_conn_delay: 0.1
-        only_use_default_delay: false
-        rejected_code: 429
-        key_type: var
-        key: remote_addr
-      limit-count:
-        count: 100
-        time_window: 60
-        rejected_code: 429
-        key_type: var
-        key: remote_addr
-        policy: local
-      proxy-rewrite:
-        regex_uri: ["^/v1/chat/completions/azure", "/openai/deployments/*/chat/completions"]
-      http_proxy:
-        host: api.openai.com
-        port: 443
-        scheme: https
-        timeout:
-          connect: 60
-          send: 60
-          read: 60
-      cors:
-        allow_origins: "*"
-        allow_methods: "GET,POST,PUT,DELETE,OPTIONS"
-        allow_headers: "*"
-        expose_headers: "*"
-        max_age: 3600
-        allow_credential: true
-
-  # Anthropic Claude API Route
-  - uri: /v1/chat/completions/anthropic
-    name: anthropic_chat_completions
-    desc: Anthropic Claude Chat Completions API with rate limiting
-    methods:
-      - POST
-    plugins:
-      limit-req:
-        rate: 10
-        burst: 20
-        nodelay: false
-        rejected_code: 429
-        key_type: var
-        key: remote_addr
-      limit-conn:
-        conn: 10
-        burst: 20
-        default_conn_delay: 0.1
-        only_use_default_delay: false
-        rejected_code: 429
-        key_type: var
-        key: remote_addr
-      limit-count:
-        count: 100
-        time_window: 60
-        rejected_code: 429
-        key_type: var
-        key: remote_addr
-        policy: local
-      proxy-rewrite:
-        regex_uri: ["^/v1/chat/completions/anthropic", "/v1/messages"]
-      http_proxy:
-        host: api.anthropic.com
-        port: 443
-        scheme: https
-        timeout:
-          connect: 60
-          send: 60
-          read: 60
-      cors:
-        allow_origins: "*"
-        allow_methods: "GET,POST,PUT,DELETE,OPTIONS"
-        allow_headers: "*"
-        expose_headers: "*"
-        max_age: 3600
-        allow_credential: true
-
-  # DeepSeek API Route
-  - uri: /v1/chat/completions/deepseek
-    name: deepseek_chat_completions
-    desc: DeepSeek Chat Completions API with rate limiting
-    methods:
-      - POST
-    plugins:
-      limit-req:
-        rate: 10
-        burst: 20
-        nodelay: false
-        rejected_code: 429
-        key_type: var
-        key: remote_addr
-      limit-conn:
-        conn: 10
-        burst: 20
-        default_conn_delay: 0.1
-        only_use_default_delay: false
-        rejected_code: 429
-        key_type: var
-        key: remote_addr
-      limit-count:
-        count: 100
-        time_window: 60
-        rejected_code: 429
-        key_type: var
-        key: remote_addr
-        policy: local
-      proxy-rewrite:
-        regex_uri: ["^/v1/chat/completions/deepseek", "/v1/chat/completions"]
-      http_proxy:
-        host: api.deepseek.com
-        port: 443
-        scheme: https
-        timeout:
-          connect: 60
-          send: 60
-          read: 60
-      cors:
-        allow_origins: "*"
-        allow_methods: "GET,POST,PUT,DELETE,OPTIONS"
-        allow_headers: "*"
-        expose_headers: "*"
-        max_age: 3600
-        allow_credential: true
-
-  # Google Cloud AI (Claude) API Route
-  - uri: /v1/chat/completions/google
-    name: google_cloud_ai_completions
-    desc: Google Cloud AI (Claude) Chat Completions API with rate limiting
-    methods:
-      - POST
-    plugins:
-      limit-req:
-        rate: 10
-        burst: 20
-        nodelay: false
-        rejected_code: 429
-        key_type: var
-        key: remote_addr
-      limit-conn:
-        conn: 10
-        burst: 20
-        default_conn_delay: 0.1
-        only_use_default_delay: false
-        rejected_code: 429
-        key_type: var
-        key: remote_addr
-      limit-count:
-        count: 100
-        time_window: 60
-        rejected_code: 429
-        key_type: var
-        key: remote_addr
-        policy: local
-      proxy-rewrite:
-        regex_uri: ["^/v1/chat/completions/google", "/v1/models/*:generateContent"]
-      http_proxy:
-        host: generativelanguage.googleapis.com
-        port: 443
-        scheme: https
-        timeout:
-          connect: 60
-          send: 60
-          read: 60
-      cors:
-        allow_origins: "*"
-        allow_methods: "GET,POST,PUT,DELETE,OPTIONS"
-        allow_headers: "*"
-        expose_headers: "*"
-        max_age: 3600
-        allow_credential: true
-
-  # Flask App Route (for internal API calls)
-  - uri: /api/v1/*
-    name: flask_app_api
-    desc: Flask Application API with rate limiting
-    methods:
-      - GET
-      - POST
-      - PUT
-      - DELETE
-    plugins:
-      limit-req:
-        rate: 50
-        burst: 100
-        nodelay: false
-        rejected_code: 429
-        key_type: var
-        key: remote_addr
-      limit-conn:
-        conn: 50
-        burst: 100
-        default_conn_delay: 0.1
-        only_use_default_delay: false
-        rejected_code: 429
-        key_type: var
-        key: remote_addr
-      limit-count:
-        count: 1000
-        time_window: 60
-        rejected_code: 429
-        key_type: var
-        key: remote_addr
-        policy: local
-      http_proxy:
-        host: flask_app
-        port: 8501
-        scheme: http
-        timeout:
-          connect: 30
-          send: 30
-          read: 30
       cors:
         allow_origins: "*"
         allow_methods: "GET,POST,PUT,DELETE,OPTIONS"

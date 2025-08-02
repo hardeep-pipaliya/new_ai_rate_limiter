@@ -14,19 +14,12 @@ class APISIXService:
     def send_request(provider, request_data: Dict[str, Any]) -> Dict[str, Any]:
         """Send request through APISIX gateway"""
         try:
-            # Determine the appropriate APISIX endpoint based on provider type
+            # For now, only support OpenAI through APISIX
             if provider.provider_type == 'openai':
                 apisix_endpoint = f"{Config.APISIX_GATEWAY_URL}/v1/chat/completions/openai"
-            elif provider.provider_type == 'azure':
-                apisix_endpoint = f"{Config.APISIX_GATEWAY_URL}/v1/chat/completions/azure"
-            elif provider.provider_type == 'anthropic':
-                apisix_endpoint = f"{Config.APISIX_GATEWAY_URL}/v1/chat/completions/anthropic"
-            elif provider.provider_type == 'deepseek':
-                apisix_endpoint = f"{Config.APISIX_GATEWAY_URL}/v1/chat/completions/deepseek"
-            elif provider.provider_type == 'google':
-                apisix_endpoint = f"{Config.APISIX_GATEWAY_URL}/v1/chat/completions/google"
             else:
-                raise APISIXError(f"Unsupported provider type: {provider.provider_type}")
+                # For other providers, we'll implement direct API calls later
+                raise APISIXError(f"Provider {provider.provider_type} not yet supported through APISIX")
             
             # Prepare headers with API key
             headers = {
