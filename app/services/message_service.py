@@ -12,6 +12,7 @@ from app.models.batch import Batch
 from app.utils.exceptions import QueueNotFoundError, MessageNotFoundError
 from app.services.redis_service import RedisService
 from app.services.rabbitmq_service import RabbitMQService
+from app.tasks.worker_tasks import process_message  # Add this import
 
 class MessageService:
     """Service for managing messages"""
@@ -56,8 +57,8 @@ class MessageService:
         # Initialize Redis counters for this batch
         RedisService.init_batch_counters(str(batch_id), 1)
         
-        # Queue message for processing
-        RabbitMQService.publish_message(str(message_id), queue_id)
+        # Queue message for processing using Celery task
+        process_message.delay(str(message_id))
         
         return {
             'success': True,
@@ -116,9 +117,9 @@ class MessageService:
         # Initialize Redis counters for this batch
         RedisService.init_batch_counters(str(batch_id), len(messages))
         
-        # Queue messages for processing
+        # Queue messages for processing using Celery tasks
         for message in created_messages:
-            RabbitMQService.publish_message(str(message.message_id), queue_id)
+            process_message.delay(str(message.message_id))
         
         return {
             'success': True,

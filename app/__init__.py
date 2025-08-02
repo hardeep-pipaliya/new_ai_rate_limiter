@@ -71,6 +71,10 @@ def create_app():
         task_time_limit=30 * 60,  # 30 minutes
     )
     
+    # Import tasks to register them with Celery
+    # This is crucial - it registers the tasks with Celery
+    from app.tasks import worker_tasks
+    
     # Register blueprints
     from app.routes.queue_routes import queue_bp
     from app.routes.provider_routes import provider_bp
