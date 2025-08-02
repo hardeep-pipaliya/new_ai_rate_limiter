@@ -14,7 +14,7 @@ class Message(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     message_id = db.Column(UUID(as_uuid=True), unique=True, nullable=False, default=uuid.uuid4)
-    batch_id = db.Column(UUID(as_uuid=True), nullable=True)
+    batch_id = db.Column(UUID(as_uuid=True), db.ForeignKey('batches.batch_id'), nullable=True)
     queue_id = db.Column(UUID(as_uuid=True), db.ForeignKey('queues.queue_id'), nullable=False)
     provider_id = db.Column(UUID(as_uuid=True), db.ForeignKey('providers.provider_id'), nullable=True)
     status = db.Column(db.String(50), default='pending', nullable=False)

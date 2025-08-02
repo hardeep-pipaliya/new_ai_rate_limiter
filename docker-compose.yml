@@ -72,7 +72,6 @@ services:
     volumes:
       - ./apisix_config/config.yaml:/usr/local/apisix/conf/config.yaml:ro
       - ./apisix_config/routes.yaml:/usr/local/apisix/conf/routes.yaml:ro
-    user: "1000:1000"
     networks:
       - ai_rate_limiter_network
     restart: unless-stopped
@@ -155,6 +154,7 @@ volumes:
   redis_data:
   rabbitmq_data:
   celery_beat_data:
+  apisix_temp:
 
 networks:
   ai_rate_limiter_network:
